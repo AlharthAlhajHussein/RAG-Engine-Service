@@ -28,7 +28,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 
 ### Go to db folder
 ```bash
-cd .\models\db
+cd .\models
 ```
 ### Init alembic
 ```bash
@@ -54,20 +54,9 @@ alembic upgrade head
 ## Containerize Project
 
 ### Build Image
-you should be in the root project
-```bash
-docker build -t ai-orchestrator:latest .
-```
+
 ### Run app contaier locally and connect with Redis, PostgreSQL (they run on Docker-compose)
-```bash
-docker run -p 8000:8000 `
-  --env-file src/.env `
-  -e db_host=host.docker.internal `
-  -e redis_host=host.docker.internal `
-  -v "C:\Users\harth\AppData\Roaming\gcloud\application_default_credentials.json:/gcp/creds.json:ro" `
-  -e GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json `
-  ai-orchestrator:latest
-```
+
 
 ## Database Setup
 
@@ -106,53 +95,3 @@ db_name=DB-name
 ```bash
 alembic upgrade head
 ```
-
-
-## Installing Redis on a Linux VM
-
-### 1. Update the Server and Install Redis
-```bash
-sudo apt update
-sudo apt install redis-server -y
-```
-
-### 2. Configure Networking and Security
-```bash
-sudo nano /etc/redis/redis.conf
-```
-#### Step A (Networking): 
-Search for 
-```bash
-bind 127.0.0.1 -::1
-``` 
-and change it to
-```bash
-bind 0.0.0.0
-```
-
-#### Step B (Security):
-Scroll to the bottom of the file and add your password directive:
-```bash
-requirepass YourSuperSecretRedisPassword123
-```
-#### Save and exit (Ctrl+O, Enter, Ctrl+X).
-
-### 3. Apply Changes and Enable Auto-Start
-Restart the Redis service so it reads your new configuration file.
-```bash
-sudo systemctl restart redis-server
-```
-
-### Run this enable command next. 
-It tells Linux, "If this VM ever reboots or crashes, automatically start Redis the moment the server turns back on."
-```bash
-sudo systemctl enable redis-server
-```
-
-### Connect with Remote Redis on VM locally
-```bash
-gcloud compute ssh redis-vm --zone=us-central1-c -- -L 6379:localhost:6379
-```
-instance name: redis-vm
-region: us-central1-a
-change them based on your VM
