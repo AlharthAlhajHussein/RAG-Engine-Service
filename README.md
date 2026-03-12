@@ -45,6 +45,12 @@ alembic revision --autogenerate -m "commit message here"
 alembic upgrade head
 ```
 
+### Use this in megration files
+```python
+op.execute('CREATE EXTENSION IF NOT EXISTS vector;')
+op.execute('DROP EXTENSION IF EXISTS vector;')
+```
+
 --------------------------------------------------
 --------------------------------------------------
 --------------------------------------------------

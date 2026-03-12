@@ -6,6 +6,7 @@ gcp-key.json
 
 # Ignore cache and compiled Python files
 __pycache__/
+__pycache__
 *.pyc
 *.pyo
 .pytest_cache/
@@ -18,4 +19,7 @@ src/db/alembic.ini
 src/.gitignore
 docker/
 src/tests/
-
+venv/
+env/
+.idea/
+.vscode/
