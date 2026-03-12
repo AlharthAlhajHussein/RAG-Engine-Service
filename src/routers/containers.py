@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 from models.connect_database import get_db
 from models.container import KnowledgeContainer
 
-container_router = APIRouter(prefix="/api/v1/containers", tags=["containers"])
+router = APIRouter(prefix="/api/v1/containers", tags=["containers"])
 
 # Request Schema
 class ContainerCreate(BaseModel):
@@ -13,7 +13,7 @@ class ContainerCreate(BaseModel):
     name: str
     description: str | None = None
 
-@container_router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_container(request: ContainerCreate, db: AsyncSession = Depends(get_db)):
     """
     Creates a new knowledge container for a company. Ensures the name is unique.

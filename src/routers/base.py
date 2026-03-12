@@ -2,12 +2,12 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from helpers import settings
 
-base_router = APIRouter(
+router = APIRouter(
     prefix="/api/v1",
     tags=["base"],
 )
 
-@base_router.get("/")
+@router.get("/")
 async def root():
     return JSONResponse(content={"APP NAME": settings.app_name, 
                                  "VERSION": settings.app_version, 

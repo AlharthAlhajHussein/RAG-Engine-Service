@@ -1,7 +1,5 @@
 from fastapi import FastAPI
-from routers.base import base_router
-from routers.containers import container_router
-from routers.data import upload_router
+from routers import base, containers, data, search
 
 app = FastAPI(
     title="RAG API",
@@ -13,6 +11,7 @@ app = FastAPI(
     # contact={"name": "Alharth Alhaj Hussein", "email": "alharth.alhaj.hussein@gmail.com"}
 )
 
-app.include_router(base_router)
-app.include_router(container_router)
-app.include_router(upload_router)
+app.include_router(base.router)
+app.include_router(containers.router)
+app.include_router(data.router)
+app.include_router(search.router)
