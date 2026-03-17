@@ -22,13 +22,13 @@ class Settings(BaseSettings):
     db_password: Optional[str] = None
     db_name: Optional[str] = None
     db_host: Optional[str] = "localhost"
-    db_port: Optional[int] = 5433
+    db_port: Optional[int] = 5432
     
     
-    # Redis settings
     redis_password: Optional[str] = None
     redis_host: str = "localhost"
-    redis_port: int = 6379
+    redis_port: int = 6379# Redis settings
+    
     
     gemini_api_key: Optional[str] = None
     
@@ -36,8 +36,8 @@ class Settings(BaseSettings):
     embedding_dimension: int = 768
 
     # GCP
-    gcp_project_id: str = "pdf-ocr-extractor-488523"
-    gcp_storage_bucket: str = "my-arabic-ocr-bucket-12345"
+    gcp_project_id: str = "agents-platform-490417"
+    gcp_storage_bucket: str = "agent-platform-bucket-1"
     
     class Config:
         env_file = ENV_PATH
