@@ -23,6 +23,17 @@ uv pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ```
 
+## START CELERY
+```bash
+celery -A celery_tasks.tasks worker --loglevel=info --pool=solo
+```
+
+## Upload files using curl
+```bash
+curl.exe -X POST "http://127.0.0.1:8000/api/v1/documents_upload/company_id/container_id" `
+>> -H "accept: application/json" `
+>> -F "files=@techcorp_policies.txt;type=text/plain"
+```
 
 ## SETUP ALEMBIC
 
