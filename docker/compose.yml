@@ -7,13 +7,13 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${redis_password}
     volumes:
       - redis_data:/data
     networks:
       - backend_private_network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${redis_password}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,7 +27,7 @@ services:
     command: >
       --address 0.0.0.0
       --port 5432
-      ${GOOGLE_CLOUD_PROJECT}:${GCP_REGION}:${CLOUD_SQL_INSTANCE_NAME}
+      ${gcp_project_id}:${gcp_region}:${cloud_sql_instance_name}
     networks:
       - backend_private_network
 
