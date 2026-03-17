@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 import uuid
 import asyncio
 import logging
@@ -12,7 +11,10 @@ from views.search import SearchResultItem, SearchResponse
 from controllers.embd_file import get_query_embedding
 
 logger = logging.getLogger("uvicorn.error")
-router = APIRouter(prefix="/api/v1/search", tags=["search"])
+router = APIRouter(
+    prefix="/api/v1/search", 
+    tags=["search"]
+)
 
 
 @router.post("/{company_id}/{container_id}", response_model=SearchResponse)
