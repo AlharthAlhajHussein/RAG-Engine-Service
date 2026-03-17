@@ -55,5 +55,5 @@ jobs:
         # GitHub logs in and runs these exact commands silently
         script: |
           cd ~/rag-production
-          sudo docker compose pull worker
-          sudo docker compose up -d worker
+          docker compose pull worker
+          docker compose up -d worker
