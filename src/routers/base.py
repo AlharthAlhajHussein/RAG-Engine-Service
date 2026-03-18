@@ -11,4 +11,4 @@ router = APIRouter(
 async def root():
     return JSONResponse(content={"APP NAME": settings.app_name, 
                                  "VERSION": settings.app_version, 
-                                 "MESSAGE": "Welcome to the RAG Engine API!"})
+                                 "MESSAGE": "Hi, Welcome to the RAG Engine API!"})

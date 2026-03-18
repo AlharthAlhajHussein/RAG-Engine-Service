@@ -58,3 +58,13 @@ jobs:
           docker compose pull worker
           docker compose up -d worker
           docker image prune -af
+          
+    # --- THE NEW CLOUD RUN DEPLOYMENT STEP ---
+    # We deploy the specific GitHub SHA tag instead of 'latest'. 
+    # This mathematically guarantees Cloud Run pulls the exact new code and allows instant rollbacks!
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy rag-engine-api \
+          --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          --region ${{ env.REGION }} \
+          --quiet
