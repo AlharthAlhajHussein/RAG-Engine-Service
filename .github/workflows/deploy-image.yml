@@ -57,3 +57,4 @@ jobs:
           cd ~/rag-production
           docker compose pull worker
           docker compose up -d worker
+          docker image prune -af

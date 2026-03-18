@@ -8,6 +8,7 @@ from models.connect_database import SyncSessionLocal
 from helpers.config import settings
 from controllers.process_file import chunking_text, extract_text
 from controllers.embd_file import embbeding_and_saving
+print("VERSION 1.0 BOOTING UP")
 
 logger = logging.getLogger(__name__)
 
