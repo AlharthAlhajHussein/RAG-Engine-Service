@@ -1,115 +1,118 @@
-# AI ORCHESTRATOR SERVICE
+# RAG-Engine-Service
 
-## SET UP ENV
+Welcome to the core backend AI orchestrator for managing Retrieval-Augmented Generation (RAG). 
 
-### Create conda env
+For a deep dive into the architecture, edge cases, and tech stack, please read the [SERVICE_DOCUMENTATION.md](./SERVICE_DOCUMENTATION.md).
+
+---
+
+## Prerequisites
+- **Python 3.13** (via Conda recommended)
+- **Docker & Docker Compose** (for Redis and PostgreSQL)
+- **UV** package manager
+- **API Keys**: Google Gemini API Key & GCP Service Account credentials (for Cloud Storage)
+
+---
+
+## Setup & Installation (Manual Development Mode)
+
+### 1. Set up Environment Configuration
+Create a `.env` file in the root directory (use a provided template if available) and configure your database, Redis, GCP, and Gemini credentials.
+
+### 2. Create and Activate Conda Environment
 ```bash
 conda create -n rag-env python=3.13 uv -c conda-forge
-```
-
-### Activate conda env
-```bash
 conda activate rag-env
 ```
 
-### Install dependancies
+### 3. Install Dependencies
 ```bash
 cd src
 uv pip install -r requirements.txt
 ```
 
-## START APP
+### 4. Rename .env.example to .env and put all variables in it
 ```bash
+cp .env.example .env
+```
+
+### 5. Start Infrastructure (Database & Redis)
+Note: create your own `docker-compose.yml` for backing services (redis, postgresql) in the `docker/` folder:
+```bash
+docker-compose up -d postgres redis
+```
+
+### 6. Start the FastAPI App
+```bash
+cd src
 uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ```
 
-## START CELERY
+### 7. Start the Celery Worker
+In a separate terminal (with the conda env activated):
 ```bash
+cd src
 celery -A celery_tasks.tasks worker --loglevel=info --pool=solo
 ```
 
-## Upload files using curl
+---
+
+## Database Migrations (Alembic)
+
+Before running the app for the first time, you must initialize the database schema and enable `pgvector`.
+
+### Go to the DB folder
 ```bash
-curl.exe -X POST "http://127.0.0.1:8000/api/v1/documents_upload/company_id/container_id" `
->> -H "accept: application/json" `
->> -F "files=@techcorp_policies.txt;type=text/plain"
+cd src/models
 ```
 
-## SETUP ALEMBIC
-
-### Go to db folder
-```bash
-cd .\models
-```
-### Init alembic
+### Init Alembic (if not already initialized)
 ```bash
 alembic init -t async migrations
 ```
 
-### Revesion code with alembic
+### Generate a new migration revision
 ```bash
-alembic revision --autogenerate -m "commit message here"
+alembic revision --autogenerate -m "Initial schema"
 ```
 
-### Aplly changes to DB
-```bash
-alembic upgrade head
-```
+### ⚠️ CRITICAL: Enable pgvector manually
+Open the newly generated migration file in `src/models/migrations/versions/` and add these lines at the top of the `upgrade()` and `downgrade()` functions respectively:
 
-### Use this in megration files
 ```python
+# In upgrade():
 op.execute('CREATE EXTENSION IF NOT EXISTS vector;')
+
+# In downgrade():
 op.execute('DROP EXTENSION IF EXISTS vector;')
 ```
 
-
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
-
-# Deployment 
-
-## Containerize Project
-
-### Build Image
-
-### Run app contaier locally and connect with Redis, PostgreSQL (they run on Docker-compose)
-
-
-## Database Setup
-
-### Step 1: Create Instance on Cloud SQL
-This usually takes about 5 to 10 minutes
-
-### Step 2: Create Your App's Database and Dedicated User for this database
-Once the instance finishes spinning up, we need to create the specific database inside it.
-- Make Database name match your .env file and create.
-- Make User name match you .env file and also here put password for this user to use you DB
-
-### Step 3: Install the Cloud SQL Auth Proxy (The Secure Bridge)
-Cloud SQL Auth Proxy tool acts just like the SSH Tunnel we use for connecting with our remote DB.
-
-1. Download the Auth Proxy for Windows directly from Google: Download [[cloud-sql-proxy-x64.exe](https://www.google.com/search?q=https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.0/cloud-sql-proxy-x64.exe)]
-
-2. Rename the downloaded file to cloud-sql-proxy.exe and move it into the root folder of your project.
-
-3. Find your Instance Connection Name: Go back to the GCP Console -> SQL -> Overview tab. Look for the "Connection name" (it will look like project-id:region:instance-name).
-
-### Step 4: Run the Proxy Bridge
-Open a new PowerShell terminal in your project root and run this command (replace with your exact connection name):
-```bash
-.\cloud-sql-proxy.exe your-project-id:your-region:your-instance-name --port 5432
-```
-Leave this terminal open! The encrypted bridge to Google Cloud is now active.
-
-## Step 5: Update .env and Run Alembic
-- Update Database configuration in your .env file
-```bash
-db_user=your-user-name
-db_password=YourNewUserPasswordHere
-db_name=DB-name
-```
-- Run your Alembic migrations
+### Apply changes to DB
 ```bash
 alembic upgrade head
+```
+
+---
+
+## Docker Containerization (Run Entire Stack Locally)
+
+If you want to run the entire service (API, Celery, Redis, Postgres) locally via Docker without manual setup:
+
+### Build and Run All Containers
+```bash
+docker-compose up --build -d
+```
+This will read your `Dockerfile` and `docker-compose.yml` to spin up the local environment automatically.
+
+---
+
+## API Usage Example
+
+### Upload files using curl
+```bash
+curl.exe -X POST "http://localhost:5000/api/v1/documents_upload/company_id/container_id" `
+-H "accept: application/json" `
+-F "files=@file1.txt;type=text/plain" `
+-F "files=@file2.pdf;type=application/pdf" `
+-F "files=@file3.docx;type=application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ```
