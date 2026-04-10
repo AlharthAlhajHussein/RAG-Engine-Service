@@ -4,8 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models.connect_database import get_db
 from models.container import KnowledgeContainer
+from models.db_operations import check_container_exists, delete_container_entirely
+from routers.dependencies import verify_internal_secret
 
-router = APIRouter(prefix="/api/v1/containers", tags=["containers"])
+router = APIRouter(
+    prefix="/api/v1/containers", 
+    tags=["containers"],
+    dependencies=[Depends(verify_internal_secret)]
+)
 
 # Request Schema
 class ContainerCreate(BaseModel):
@@ -54,3 +60,19 @@ async def create_container(request: ContainerCreate, db: AsyncSession = Depends(
         "container_id": str(new_container.id),
         "name": new_container.name
     }
+
+@router.delete("/{company_id}/{container_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_container(
+    company_id: str, 
+    container_id: str, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Deletes a container, all its chunks, documents, and GCP files safely.
+    """
+    container = await check_container_exists(db, container_id, company_id)
+    if not container:
+        raise HTTPException(status_code=404, detail="Container not found.")
+        
+    await delete_container_entirely(db_session=db, container=container)
+    return None

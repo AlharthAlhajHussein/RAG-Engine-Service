@@ -9,11 +9,13 @@ from models.db_operations import check_container_exists, semantic_search
 from routers.schems.search import SearchRequest
 from views.search import SearchResultItem, SearchResponse
 from controllers.embd_file import get_query_embedding
+from routers.dependencies import verify_internal_secret
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter(
     prefix="/api/v1/search", 
-    tags=["search"]
+    tags=["search"],
+    dependencies=[Depends(verify_internal_secret)]
 )
 
 

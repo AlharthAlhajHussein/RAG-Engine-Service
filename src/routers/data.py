@@ -10,12 +10,14 @@ from models.document import DocumentAsset
 from models.connect_database import get_db
 from models.db_operations import check_container_exists, check_document_exists, delete_document_and_chunks
 from helpers.config import settings
+from routers.dependencies import verify_internal_secret
 
 logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter(
     prefix="/api/v1/documents_upload", 
-    tags=["documents_upload"]
+    tags=["documents_upload"],
+    dependencies=[Depends(verify_internal_secret)]
 )
 
 @router.post(
@@ -68,7 +70,7 @@ async def upload_documents_to_container(
             
             if existing_document:
                 # Delete file and it's chunks from DB
-                await delete_document_and_chunks(db_session, str(existing_document.id))
+                await delete_document_and_chunks(db_session, existing_document)
                     
             # 4. Add the Asset to the database using your ORM
             new_document = DocumentAsset(

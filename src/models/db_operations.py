@@ -53,8 +53,18 @@ async def check_document_exists(db_session: AsyncSession, file_name: str, contai
     result = await db_session.execute(stmt)
     return result.scalars().first()
 
-async def delete_document_and_chunks(db_session: AsyncSession, document_id: str) -> bool:
+async def check_document_exists_by_id(db_session: AsyncSession, document_id: str, container_id: str):
+    stmt = select(DocumentAsset).filter(
+        DocumentAsset.id == document_id,
+        DocumentAsset.container_id == container_id
+    )
+    result = await db_session.execute(stmt)
+    return result.scalars().first()
+
+async def delete_document_and_chunks(db_session: AsyncSession, document: DocumentAsset) -> bool:
     try:
+        document_id = str(document.id)
+        
         # 1. Delete the chunks
         stmt_chunks = delete(VectorChunk).filter(VectorChunk.document_id == document_id)
         await db_session.execute(stmt_chunks)
@@ -64,9 +74,57 @@ async def delete_document_and_chunks(db_session: AsyncSession, document_id: str)
         await db_session.execute(stmt_doc)
         
         await db_session.commit()
+        
+        # 3. Delete from GCP Storage
+        try:
+            from google.cloud import storage
+            from helpers.config import settings
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(settings.gcp_storage_bucket)
+            blob = bucket.blob(document.gcp_storage_path)
+            if blob.exists():
+                blob.delete()
+        except Exception as gcp_e:
+            logger.error(f"Failed to delete GCP file {document.gcp_storage_path}: {gcp_e}")
     except Exception as e:
         await db_session.rollback()
-        logger.error(f"Failed to delete document {document_id} and its chunks: {e}")
+        logger.error(f"Failed to delete document {document.id} and its chunks: {e}")
+        raise e
+    
+    return True
+
+async def delete_container_entirely(db_session: AsyncSession, container: KnowledgeContainer) -> bool:
+    try:
+        container_id = str(container.id)
+
+        # 1. Delete all chunks in the container
+        stmt_chunks = delete(VectorChunk).filter(VectorChunk.container_id == container_id)
+        await db_session.execute(stmt_chunks)
+
+        # 2. Delete all document assets
+        stmt_docs = delete(DocumentAsset).filter(DocumentAsset.container_id == container_id)
+        await db_session.execute(stmt_docs)
+
+        # 3. Delete the container itself
+        stmt_cont = delete(KnowledgeContainer).filter(KnowledgeContainer.id == container_id)
+        await db_session.execute(stmt_cont)
+        await db_session.commit()
+
+        # 4. Delete the entire GCP Storage Folder for this container
+        try:
+            from google.cloud import storage
+            from helpers.config import settings
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(settings.gcp_storage_bucket)
+            blobs = bucket.list_blobs(prefix=f"agents_platform_documents/{container.company_id}/{container_id}/")
+            for blob in blobs:
+                blob.delete()
+        except Exception as gcp_e:
+            logger.error(f"Failed to delete GCP folder for container {container_id}: {gcp_e}")
+
+    except Exception as e:
+        await db_session.rollback()
+        logger.error(f"Failed to delete container {container.id}: {e}")
         raise e
     
     return True
