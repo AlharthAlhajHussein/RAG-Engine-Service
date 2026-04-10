@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     redis_port: int = 6379# Redis settings
     
     
+    core_internal_secret: str | None = None # Replace with actual key in production
+
     gemini_api_key: Optional[str] = None
     
     embedding_model: str = "gemini-embedding-001"
@@ -42,8 +44,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ENV_PATH
         env_file_encoding = "utf-8"
-        extra = "ignore"
-        
-        
+        extra = "ignore"        
 
 settings = Settings()
